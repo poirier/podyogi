@@ -1,7 +1,7 @@
 from distutils.core import setup
 
 setup(
-    name='pypodder',
+    name='podyogi',
     version='0.0.1',
     packages=[''],
     url='https://bitbucket.org/poirier/pypodder/',

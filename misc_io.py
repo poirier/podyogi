@@ -1,6 +1,10 @@
 import json
+import logging
 import os
+import sys
 
+
+log = logging.getLogger()
 
 def save_status(status, filename):
     """Save status object"""
@@ -26,19 +30,19 @@ def create_example_podcasts_file(filename):
 
 def load_status(filename):
     """Return status object"""
-    status = None
+
     if os.path.exists(filename):
         try:
             with open(filename, "r") as f:
                 status = json.load(f)
-        except:
-            pass
-    if not status:
+        except IOError:
+            log.exception("Error reading status file: %s" % filename)
+            sys.exit(1)
+    else:
+        log.error("Status file does not exist: %s, starting with "
+                  "initial status" % filename)
         status = {
             'feeds': {},
         }
-    if not 'feeds' in status:
-        status['feeds'] = {}
-    if 'downloaded_urls' in status:
-        del status['downloaded_urls']
+
     return status
