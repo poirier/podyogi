@@ -68,7 +68,7 @@ if not os.path.exists(podcasts_file):
                   "create example file" % podcasts_file)
     sys.exit(1)
 
-with open(os.path.join(podcasts_file, "r")) as f:
+with open(podcasts_file, "r") as f:
     podcasts = json.load(f)
 
 status_filename = os.path.join(args.configdir, "status.json")
