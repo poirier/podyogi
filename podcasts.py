@@ -136,7 +136,8 @@ def do_podcast(podcast, status, destdir, default_max_downloads):
                     at_max = True
             else:
                 log.error("Unexpected enclosure type: %s" % enclosure_type)
-                sys.exit(1)
+                continue
+                #sys.exit(1)
 
     feed_status['etag'] = r.headers.get('etag', None)
     feed_status['modified'] = r.headers.get('modified', None)
