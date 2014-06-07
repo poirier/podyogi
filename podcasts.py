@@ -36,7 +36,7 @@ def do_podcast(podcast, status, destdir, default_max_downloads):
                      **kwargs)
     if r.status_code == 304:
         log.debug("Feed not modified, skipping")
-        print("Feed not modified, skipping")
+        #print("Feed not modified, skipping")
         return
 
     xml = r.content
@@ -44,7 +44,7 @@ def do_podcast(podcast, status, destdir, default_max_downloads):
     # Get the current feed
     d = feedparser.parse(xml)
 
-    feed_title = d.feed.title
+    feed_title = d.feed.get('title', 'NO TITLE')
     log.debug("Feed title: %s, there are %d items" % (feed_title, len(d.entries)))
     max_downloads = podcast.get('max_downloads', default_max_downloads)
 
@@ -81,7 +81,7 @@ def do_podcast(podcast, status, destdir, default_max_downloads):
                 url = e['href']
                 if url in feed_status['downloaded_urls']:
                     # log.debug("Previously downloaded %s, skipping" % url)
-                    print("Previously downloaded %s, skipping" % url)
+                    # print("Previously downloaded %s, skipping" % url)
                     continue
                 if at_max:
                     # log.debug("At max, skipping")

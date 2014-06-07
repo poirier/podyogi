@@ -10,9 +10,6 @@ from podcasts import do_podcast
 
 HOME = os.environ['HOME']
 
-log_level_names = [x for x in logging._levelNames
-                   if isinstance(x, str) and x != 'NOTSET']
-
 parser = argparse.ArgumentParser(description="Download some podcasts")
 parser.add_argument("--configdir", dest="configdir",
                     help="Directory where configuration and status files "
@@ -27,7 +24,7 @@ parser.add_argument("--initialize", dest="initialize",
                          "(CONFIGDIR/podcasts.json) if none found",
                     default=False)
 parser.add_argument("--loglevel", dest="loglevel",
-                    choices=log_level_names,
+                    choices=['INFO', 'DEBUG', 'WARNING', 'ERROR'],
                     default='INFO',
                     help="Output level - default=INFO")
 parser.add_argument("--max-downloads", dest="max_downloads",
