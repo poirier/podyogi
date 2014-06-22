@@ -29,6 +29,11 @@ though it isn't yet. For now, it's more like:
 
 In either case, I highly recommend installing it into a virtualenv.
 
+TEMP MAYBE:
+
+sudo apt-get install python3-dev libtag1-dev
+pip install cython
+
 Quick start
 -----------
 

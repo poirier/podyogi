@@ -3,7 +3,9 @@ from setuptools import setup, find_packages
 requirements = [
     # Requests 1.2.1-1.2.3 - won't install under Python 3.3
     'requests==1.2.0',
-    'feedparser'
+    'feedparser',
+    'cython==0.19.1',
+    'pytaglib==0.3.5',
 ]
 
 setup(
