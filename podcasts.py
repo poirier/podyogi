@@ -21,16 +21,30 @@ def do_podcast(podcast, status, destdir, default_max_downloads):
         'modified': None,
     })
 
-    # Get the current feed
-    d = feedparser.parse(podcast_url,
-                         etag=feed_status['etag'],
-                         modified=feed_status['modified'])
-
-    if d.get('status', 200) == 304:
+    headers = {}
+    if feed_status['etag']:
+        headers['If-None-Match'] = feed_status['etag']
+        print("Using etag")
+    if feed_status['modified']:
+        headers['If-Modified-Since'] = feed_status['modified']
+        print("Using modified")
+    kwargs = {}
+    if 'userid' in podcast:
+        kwargs['auth'] = (podcast['userid'], podcast['password'])
+    r = requests.get(podcast_url,
+                     headers=headers,
+                     **kwargs)
+    if r.status_code == 304:
         log.debug("Feed not modified, skipping")
+        #print("Feed not modified, skipping")
         return
 
-    feed_title = d.feed.title
+    xml = r.content
+
+    # Get the current feed
+    d = feedparser.parse(xml)
+
+    feed_title = d.feed.get('title', 'NO TITLE')
     log.debug("Feed title: %s, there are %d items" % (feed_title, len(d.entries)))
     max_downloads = podcast.get('max_downloads', default_max_downloads)
 
@@ -67,9 +81,11 @@ def do_podcast(podcast, status, destdir, default_max_downloads):
                 url = e['href']
                 if url in feed_status['downloaded_urls']:
                     # log.debug("Previously downloaded %s, skipping" % url)
+                    # print("Previously downloaded %s, skipping" % url)
                     continue
                 if at_max:
                     # log.debug("At max, skipping")
+                    print("At max, skipping (and marking downloaded)")
                     # Mark this one downloaded so we don't try again
                     feed_status['downloaded_urls'].append(url)
                     continue
@@ -85,26 +101,33 @@ def do_podcast(podcast, status, destdir, default_max_downloads):
                 if os.path.exists(filename):
                     if length and os.stat(filename).st_size == length:
                         log.debug("File %s already exists and is the right size, skipping" % filename)
+                        print("File %s already exists and is the right size, skipping" % filename)
                         feed_status['downloaded_urls'].append(url)
                         if feed_downloads >= max_downloads:
                             log.debug("Reached podcast's max downloads (%d)" % max_downloads)
+                            print("Reached podcast's max downloads (%d)" % max_downloads)
                             at_max = True
                         continue
                     else:
                         log.debug("File %s exists but is wrong size, will download again" % filename)
+                        print("File %s exists but is wrong size, will download again" % filename)
 
                 # FIXME: if these get too big, will we need to stream them to the file?
                 r = requests.get(url, stream=True)
                 content_length = int(r.headers['content-length'])
                 log.debug("content-length=%d" % content_length)
-                if length and content_length != length:
-                    raise IOError("content length is wrong!")
+                if length and length != 100000 and content_length != length:
+                    print("WARNING: content length is wrong! length=%d, content_length=%d" % (length, content_length))
                 with open(filename, "wb") as f:
                     f.write(r.content)
                 file_size = os.stat(filename).st_size
-                if length and file_size != length:
+                if not file_size:
+                    print("PROBLEM downloading file: file is empty! %s" % filename)
+                    os.remove(filename)
+                    continue
+                if length and length != 100000 and file_size != length:
                     log.debug("File is wrong size - should be %d bytes, is %d bytes" % (length, file_size))
-                    raise IOError("Problem downloading file: %s" % url)
+                    print("Problem downloading file (wrong size): %s" % url)
                 log.info("Downloaded %s to %s" % (item_title, filename))
                 feed_status['downloaded_urls'].append(url)
                 feed_downloads += 1
@@ -113,8 +136,9 @@ def do_podcast(podcast, status, destdir, default_max_downloads):
                     at_max = True
             else:
                 log.error("Unexpected enclosure type: %s" % enclosure_type)
-                sys.exit(1)
+                continue
+                #sys.exit(1)
 
-    feed_status['etag'] = d.get('etag', None)
-    feed_status['modified'] = d.get('modified', None)
+    feed_status['etag'] = r.headers.get('etag', None)
+    feed_status['modified'] = r.headers.get('modified', None)
     status['feeds'][podcast_url] = feed_status
