@@ -4,6 +4,7 @@ import os
 import sys
 import time
 import feedparser
+
 import requests
 
 
@@ -24,10 +25,10 @@ def do_podcast(podcast, status, destdir, default_max_downloads):
     headers = {}
     if feed_status['etag']:
         headers['If-None-Match'] = feed_status['etag']
-        print("Using etag")
+        log.debug("Using etag")
     if feed_status['modified']:
         headers['If-Modified-Since'] = feed_status['modified']
-        print("Using modified")
+        log.debug("Using modified")
     kwargs = {}
     if 'userid' in podcast:
         kwargs['auth'] = (podcast['userid'], podcast['password'])
@@ -117,12 +118,12 @@ def do_podcast(podcast, status, destdir, default_max_downloads):
                 content_length = int(r.headers['content-length'])
                 log.debug("content-length=%d" % content_length)
                 if length and length != 100000 and content_length != length:
-                    print("WARNING: content length is wrong! length=%d, content_length=%d" % (length, content_length))
+                    log.warning("WARNING: content length is wrong! length=%d, content_length=%d" % (length, content_length))
                 with open(filename, "wb") as f:
                     f.write(r.content)
                 file_size = os.stat(filename).st_size
                 if not file_size:
-                    print("PROBLEM downloading file: file is empty! %s" % filename)
+                    log.error("PROBLEM downloading file: file is empty! %s" % filename)
                     os.remove(filename)
                     continue
                 if length and length != 100000 and file_size != length:

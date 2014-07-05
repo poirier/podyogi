@@ -1,15 +1,15 @@
 from setuptools import setup, find_packages
 
 requirements = [
-    'cython==0.19.1',
-    'pytaglib==0.3.5',
+    'cython==0.20.2',
+    'pytaglib==0.4.1',
     'requests==2.3.0',
     'feedparser==5.1.3'
 ]
 
 setup(
     name='podyogi',
-    version='0.0.1',
+    version='0.0.2',
     packages=[''],
     url='https://bitbucket.org/poirier/podyogi/',
     license='Apache 2.0',
@@ -18,4 +18,9 @@ setup(
     description='Podcatcher for Pythonistas',
     install_requires=requirements,
     long_description=open("README.rst").read(),
+    entry_points={
+        'console_scripts': [
+            'podyogi = podyogi:main'
+        ]
+    }
 )
